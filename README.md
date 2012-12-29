@@ -7,7 +7,7 @@ Author: Remigijus Kiminas
 Logo detection utility. Tells does supplied logo is on image. Can be used to find image on image also. Produces quite stable results. Suplied argument have to be transperent logo PNG.
 
 Usage example:
-> ./logo_detect testcases/logo.png testcases/1.jpg
+> ./logo-detect testcases/logo.png testcases/1.jpg
 
  * Output:
   * Success case
