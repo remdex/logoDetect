@@ -33,6 +33,7 @@ Best practice for best result.
  * If logo you want to find is semi transparent, small, consisted of text and it color influences background color you should use gradient mode, the default one.
  * If your logo is solid color without transparent body I suggest to use color mode search. By my testing in these cases it produces better results.
  * Mainly result quality depends on how well you prepare logo, remove unnecesary background. I have also notices if logo is quite big it's better to use color mode.
+ * It's also good idea to limit process cpu usage. It can be done with cpulimit utility.
 
 Implementation notices
 ==
