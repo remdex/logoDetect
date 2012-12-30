@@ -13,7 +13,7 @@
  * On failure:
  *  LOGO_NOT_DETECTED|<logo_path>|<image_tested>|0.698299
  * Threshold value for gradient mode
- *  Utility has 0.28 as treshold value. 0.00000 - best match, 1.00000 - worst match.
+ *  Utility has 0.20 as treshold value. 0.00000 - best match, 1.00000 - worst match.
  * Threshold value for color mode
  *  Utility has 0.10 as treshold value. 0.00000 - best match, 1.00000 - worst match.
  */
@@ -32,7 +32,7 @@ using namespace cv;
 
 // #define DEBUG_SAVE
 
-const double tresholdLimit = 0.24;
+const double tresholdLimit = 0.20;
 const double tresholdLimitColor = 0.10;
 
 int main(int argc, char** argv)
@@ -46,14 +46,42 @@ int main(int argc, char** argv)
     const char* match_mode_execute = argc >= 4 ? argv[3] : "gradient"; // Match method
 
     Mat img, imggrey; Mat templ, templgrey; Mat result;
-
+    
+    // Sobel filter
+    int ddepth = CV_16S;
+    int scale = 1;
+    int delta = 0;
+    Mat grad, grad_template, grad_x, grad_y;
+    Mat abs_grad_x, abs_grad_y;
+    
     // Create an array of templates images
     std::vector<char*> v;
     std::vector<Mat> logo_items; // Holds logo as array avoids disk reads.
     char* chars_array = strtok(  const_cast<char *>(object_filename), "|");       
     while(chars_array)
-    {
-        logo_items.push_back( imread( chars_array, 1 ) );        
+    {        
+        Mat templ = imread( chars_array, 1 );
+    
+        if (strcmp(match_mode_execute,"gradient") == 0) { 
+        
+            cvtColor( templ, templgrey,   CV_RGB2GRAY );
+            
+            /// Gradient X
+            Sobel( templgrey, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+            convertScaleAbs( grad_x, abs_grad_x );
+            
+            /// Gradient Y
+            Sobel( templgrey, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+            convertScaleAbs( grad_y, abs_grad_y );
+          
+            /// Total Gradient (approximate)
+            addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad_template );
+            
+            logo_items.push_back( grad_template );             
+        } else {        
+            logo_items.push_back( templ );            
+        }
+       
         v.push_back(chars_array);
         chars_array = strtok(NULL, "|");
     }   
@@ -69,63 +97,32 @@ int main(int argc, char** argv)
     }
 
     for(size_t nscene = 0; nscene < vscene.size(); ++nscene)
-    {      
-        
+    {
         bool imageProcessed = false;
            
         img = imread( vscene[nscene], 1 );
                 
         if (strcmp(match_mode_execute,"gradient") == 0) {
-                cvtColor( img, imggrey,  CV_RGB2GRAY );
-        }
+            cvtColor( img, imggrey,  CV_RGB2GRAY );
             
+            /// Gradient X
+            Sobel( imggrey, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+            convertScaleAbs( grad_x, abs_grad_x );
+            
+            /// Gradient Y
+            Sobel( imggrey, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+            convertScaleAbs( grad_y, abs_grad_y );
+          
+            /// Total Gradient (approximate)
+            addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
+            
+            img = grad;
+        }
+
         for(size_t n = 0; n < v.size(); ++n)
         {                    
             templ = logo_items[n];            
-        
-            if (strcmp(match_mode_execute,"gradient") == 0) {        
-                cvtColor( templ, templgrey,   CV_RGB2GRAY );
-                            
-                // Sobel filter
-                int ddepth = CV_16S;
-                int scale = 1;
-                int delta = 0;
-                Mat grad, grad_template, grad_x, grad_y;
-                Mat abs_grad_x, abs_grad_y;
-                  
-                if (imageProcessed == false) {
-                    /// Gradient X
-                    Sobel( imggrey, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
-                    convertScaleAbs( grad_x, abs_grad_x );
-                    
-                    /// Gradient Y
-                    Sobel( imggrey, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
-                    convertScaleAbs( grad_y, abs_grad_y );
-                  
-                    /// Total Gradient (approximate)
-                    addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
-                }
-                    
-                /// Gradient X
-                Sobel( templgrey, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
-                convertScaleAbs( grad_x, abs_grad_x );
-                
-                /// Gradient Y
-                Sobel( templgrey, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
-                convertScaleAbs( grad_y, abs_grad_y );
-              
-                /// Total Gradient (approximate)
-                addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad_template );
-            
-                // Set new img only if original image was not processed before
-                if (imageProcessed == false) {
-                    img = grad;
-                    imageProcessed = true;                    
-                }
-                                
-                templ = grad_template;
-            }
-            
+          
             #ifdef DEBUG_SAVE
             Mat img_display;
             img.copyTo( img_display );
