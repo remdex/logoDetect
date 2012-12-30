@@ -18,9 +18,9 @@ Multiple logos ar multiple images to test against
 
  * Output:
   * Success case
-  * LOGO_DETECTED|<logo_path>|<image_tested>|0.193502
+  * LOGO_DETECTED|[logo_path]|[image_tested]|0.193502
   * On failure:
-  * LOGO_NOT_DETECTED|<logo_path>|<image_tested>|0.698299
+  * LOGO_NOT_DETECTED|[logo_path]|[image_tested]|0.698299
 
 
  * Threshold value for gradient mode
