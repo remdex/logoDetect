@@ -32,7 +32,7 @@ using namespace cv;
 
 // #define DEBUG_SAVE
 
-const double tresholdLimit = 0.28;
+const double tresholdLimit = 0.24;
 const double tresholdLimitColor = 0.10;
 
 int main(int argc, char** argv)
@@ -69,7 +69,10 @@ int main(int argc, char** argv)
     }
 
     for(size_t nscene = 0; nscene < vscene.size(); ++nscene)
-    {                  
+    {      
+        
+        bool imageProcessed = false;
+           
         img = imread( vscene[nscene], 1 );
                 
         if (strcmp(match_mode_execute,"gradient") == 0) {
@@ -77,8 +80,7 @@ int main(int argc, char** argv)
         }
             
         for(size_t n = 0; n < v.size(); ++n)
-        {
-                    
+        {                    
             templ = logo_items[n];            
         
             if (strcmp(match_mode_execute,"gradient") == 0) {        
@@ -91,16 +93,18 @@ int main(int argc, char** argv)
                 Mat grad, grad_template, grad_x, grad_y;
                 Mat abs_grad_x, abs_grad_y;
                   
-                /// Gradient X
-                Sobel( imggrey, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
-                convertScaleAbs( grad_x, abs_grad_x );
-                
-                /// Gradient Y
-                Sobel( imggrey, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
-                convertScaleAbs( grad_y, abs_grad_y );
-              
-                /// Total Gradient (approximate)
-                addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
+                if (imageProcessed == false) {
+                    /// Gradient X
+                    Sobel( imggrey, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+                    convertScaleAbs( grad_x, abs_grad_x );
+                    
+                    /// Gradient Y
+                    Sobel( imggrey, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+                    convertScaleAbs( grad_y, abs_grad_y );
+                  
+                    /// Total Gradient (approximate)
+                    addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
+                }
                     
                 /// Gradient X
                 Sobel( templgrey, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
@@ -113,8 +117,12 @@ int main(int argc, char** argv)
                 /// Total Gradient (approximate)
                 addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad_template );
             
-                // Set new img
-                img = grad;
+                // Set new img only if original image was not processed before
+                if (imageProcessed == false) {
+                    img = grad;
+                    imageProcessed = true;                    
+                }
+                                
                 templ = grad_template;
             }
             
