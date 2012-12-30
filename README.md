@@ -12,11 +12,15 @@ Default search
 Color search:
 > ./logo-detect testcases/logo.png testcases/1.jpg color
 
+Multiple logos ar multiple images to test against
+> ./logo-detect testcases/logo.png|testcases/logo1.png testcases/1.jpg|testcases/2.jpg
+
+
  * Output:
   * Success case
-  * LOGO_DETECTED|0.041689
+  * LOGO_DETECTED|<logo_path>|<image_tested>|0.193502
   * On failure:
-  * LOGO_NOT_DETECTED|0.698299
+  * LOGO_NOT_DETECTED|<logo_path>|<image_tested>|0.698299
 
 
  * Threshold value for gradient mode
